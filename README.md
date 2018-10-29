@@ -9,4 +9,4 @@ neural networks could play an interesting role.
 
 ## Methods
 
-Some initial details on how we are planning to achieve this can be found in the document outlining the relevant [bibliography](../blob/master/docs/bibliography.md).
+Some initial details on how we are planning to achieve this can be found in the document outlining the relevant [bibliography](docs/bibliography.md).
