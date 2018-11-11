@@ -15,7 +15,9 @@ robust the methods seem to be. **We should aim at implementing two or three of
 theese methods.**
 
 1. [Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep
-   Learning](https://arxiv.org/abs/1506.02142). This work is accompanied by a nice [blog post](http://www.cs.ox.ac.uk/people/yarin.gal/website/blog_3d801aa532c1ce.html).
+   Learning](https://arxiv.org/abs/1506.02142). This work is accompanied by a
+   nice [blog
+   post](http://www.cs.ox.ac.uk/people/yarin.gal/website/blog_3d801aa532c1ce.html).
 
 2. [Fast and Scalable Bayesian Deep Learning by Weight-Perturbation in
    Adam](https://arxiv.org/abs/1806.04854). In some ways this is similar to
@@ -32,6 +34,10 @@ theese methods.**
    and straightforward exposition can be found in [Good Initialization of
    Variational Bayes for Deep Models](https://arxiv.org/pdf/1810.08083.pdf).
 
+4. I liked this paper a lot, a good read on the topic. It proposes Bayesian
+   Ensembles with MAP sampling. [Uncertainty in Neural Networks: Bayesian
+   Ensembling](https://arxiv.org/pdf/1810.05546.pdf)
+
 
 ## Calibration
 
@@ -44,7 +50,8 @@ Bayesian](https://www.tandfonline.com/doi/abs/10.1080/01621459.1982.10477856).
 Some recent references on this topic (although this subject is talked in some
 of the papers above as well):
 
-1. [Accurate Uncertainties for Deep Learning Using Calibrated Regression](https://arxiv.org/pdf/1807.00263.pdf)
+1. [Accurate Uncertainties for Deep Learning Using Calibrated
+   Regression](https://arxiv.org/pdf/1807.00263.pdf)
 
 2. ... feel free to add some more.
 
