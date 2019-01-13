@@ -29,6 +29,7 @@ def tricky_line(x):
     y[-1] = 5
     return y
 
+
 # each entry is [fn, x_train, x_test]
 FNS = {
     "double_sin": [
@@ -62,7 +63,7 @@ class DemoData(data.Dataset):
             dset (str, optional): Defaults to "sin". Dataset name, keys in FNS.
             is_train (bool, optional): Defaults to True. Train or test
             transform (function, optional): Defaults to None. Callaback to a
-                function that further transforms the data, for example 
+                function that further transforms the data, for example
                 a radial basis function or a polynomial feature extractor.
         """
 
@@ -86,10 +87,54 @@ class DemoData(data.Dataset):
         return self.__data.shape[0]
 
 
-if __name__ == "__main__":
+class BootstrappDataset(data.Dataset):
+    def __init__(self, dset, k=5):
+        N = len(dset)
+        self.__k = k
+        self.__original = dset
+        self.__masks = [torch.randint(0, N, (N,)) for _ in range(k)]
+
+    def __getitem__(self, index):
+        samples = [self.__original[mask[index]] for mask in self.__masks]
+        return samples
+
+    def __len__(self):
+        return len(self.__original)
+
+
+def boot_collate(samples):
+    features_batches = [
+        torch.tensor([[el[0]] for el in batch]) for batch in zip(*samples)
+    ]
+    target_batches = [
+        torch.tensor([[el[1]] for el in batch]) for batch in zip(*samples)
+    ]
+    # return list(zip(features_batches, target_batches))
+    return features_batches, target_batches
+
+
+def main():
     for dset in FNS.keys():
         loader = data.DataLoader(DemoData(dset=dset), batch_size=1)
         print(f"\nLoading dataset {dset.upper()}.")
         for idx, (x, target) in enumerate(loader):
             print(idx, x, target)
         print("-" * 10)
+
+    k = 3
+    bsz = 2
+    print(f"\nBootstrappDataset  k={k}  bsz={bsz}---------")
+    dset = DemoData(dset="double_sin")
+    boot_dset = BootstrappDataset(dset, k=k)
+    boot_loader = data.DataLoader(
+        boot_dset, batch_size=bsz, collate_fn=boot_collate
+    )
+
+    for idx, (xs, targets) in enumerate(boot_loader):
+        print("batch: ", idx)
+        print("  X:      ", xs)
+        print("  target: ", targets)
+
+
+if __name__ == "__main__":
+    main()
