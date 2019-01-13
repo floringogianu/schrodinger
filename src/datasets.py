@@ -20,6 +20,7 @@ def sin(x, β=0.2, noisy=True):
     """
     if noisy:
         return torch.sin(x) + Normal(0, β).sample((x.shape[0],))
+    return torch.sin(x)
 
 
 def tricky_line(x):
