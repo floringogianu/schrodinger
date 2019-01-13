@@ -55,7 +55,7 @@ FNS = {
 
 class DemoData(data.Dataset):
     def __init__(self, dset="sin", is_train=True, transform=None):
-        """ Returns a nice looking function.
+        """ Returns a dataset based on a nice looking function.
 
         Args:
             data (data.Dataset): PyTorch parent class
