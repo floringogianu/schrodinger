@@ -1,5 +1,7 @@
 """ Simple regression Datasets used for visualization.
 """
+import math
+
 import torch
 from torch.utils import data
 from torch.distributions import Normal, Uniform
@@ -31,7 +33,7 @@ def tricky_line(x):
     return y
 
 
-# each entry is [fn, x_train, x_test]
+# each entry is [fn, x_train, x_test, full_interval]
 FNS = {
     "double_sin": [
         double_sin,
@@ -39,6 +41,7 @@ FNS = {
             (Uniform(0, 0.6).sample((24,)), Uniform(0.8, 1).sample((11,)))
         ),
         Uniform(0, 1.1).sample((35,)),
+        torch.linspace(-1, 2, 100),
     ],
     "sin": [
         sin,
@@ -46,36 +49,44 @@ FNS = {
             (Uniform(0.5, 2.3).sample((24,)), Uniform(4.0, 6.0).sample((11,)))
         ),
         Uniform(0, 6.5).sample((11,)),
+        torch.linspace(0, math.pi, 100),
     ],
     "tricky_line": [
         tricky_line,
         torch.linspace(-0.9, 0.9, 10),
         torch.linspace(-0.9, 0.9, 10),
+        torch.linspace(-1, 1, 100),
     ],
 }
 
 
 class DemoData(data.Dataset):
-    def __init__(self, dset="sin", is_train=True, transform=None):
+    def __init__(self, dset="sin", mode="train", transform=None):
         """ Returns a dataset based on a nice looking function.
 
         Args:
             data (data.Dataset): PyTorch parent class
             dset (str, optional): Defaults to "sin". Dataset name, keys in FNS.
-            is_train (bool, optional): Defaults to True. Train or test
+            mode (str, optional): Defaults to "train". train or test or full
             transform (function, optional): Defaults to None. Callaback to a
                 function that further transforms the data, for example
                 a radial basis function or a polynomial feature extractor.
         """
 
-        self.__train = is_train
-        fn, x_train, x_test = FNS[dset]
-        if is_train:
+        self.dset_name = dset
+        self.__mode = mode
+        fn, x_train, x_test, x_full = FNS[dset]
+        if mode == "train":
             self.__data = x_train
             self.__targets = fn(x_train)
-        else:
+        elif mode == "test":
             self.__data = x_test
             self.__targets = fn(x_test)
+        elif mode == "full":
+            self.__data = x_full
+            self.__targets = fn(x_full)
+        else:
+            raise ValueError("The mode should be `train` or `test` or `full`.")
 
         if transform is not None:
             self.__data = transform(self.__data)
