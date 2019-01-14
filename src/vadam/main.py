@@ -25,6 +25,16 @@ class FF(nn.Module):
         v = self.l3(v)
         return v
 
+    def get_predictive_variance(self, x, optimizer, mc_samples=20, regression=True):
+        with torch.no_grad():
+            if regression:
+                logits_list = optimizer.get_mc_predictions(self.forward, inputs = x, mc_samples = mc_samples, ret_numpy=False)
+                logits = torch.stack(logits_list, dim=0)
+                y_hat = logits.mean(dim=0)
+                var   = logits.std(dim=0)
+                return y_hat, var
+
+
 
 def train(model, loss, optimizer, train_loader):
     for epoch in range(n_epochs):
@@ -43,14 +53,12 @@ def test(model, optimizer, test_loader, mc_samples=20):
     losses = []
     for idx, (x, target) in enumerate(test_loader):
         x, target = Variable(x), Variable(target)
-        logits_list = optimizer.get_mc_predictions(model.forward, inputs = x, mc_samples = mc_samples, ret_numpy=False)
-        logits = [logit.detach().numpy() for logit in logits_list]
-        output = np.mean(logits)
-        variance = np.var(logits)
+        output, variance = model.get_predictive_variance(x, optimizer)
         l = loss(torch.tensor(output, dtype=torch.float), target)
         losses.append(l.data)
         print(f"{x} {output} {variance}")
     print(f"Test set loss: {sum(losses)/len(losses)}")
+
 
 
 if __name__ == "__main__":
