@@ -2,14 +2,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import random
-from datasets import FNS, DemoData
+import numpy as np
+from src.datasets import FNS, DemoData
 from torch.utils import data
 from torch.nn.modules.loss import MSELoss, L1Loss
 from torch.optim import Adam
 from torch.autograd import Variable
 from vadam import Vadam
 
-n_epochs = 10
+n_epochs = 20
 
 class FF(nn.Module):
     def __init__(self, h1_size=256, h2_size=128):
@@ -25,7 +26,7 @@ class FF(nn.Module):
         return v
 
 
-def train(model, loss, optimizer, train_loader, test_loader):
+def train(model, loss, optimizer, train_loader):
     for epoch in range(n_epochs):
         for idx, (x, target) in enumerate(train_loader):
             x, target = Variable(x), Variable(target)
@@ -37,12 +38,18 @@ def train(model, loss, optimizer, train_loader, test_loader):
                 return l
             optimizer.step(closure)
 
+
+def test(model, optimizer, test_loader, mc_samples=20):
     losses = []
     for idx, (x, target) in enumerate(test_loader):
         x, target = Variable(x), Variable(target)
-        output = model(x)
-        l = loss(output, target)
+        logits_list = optimizer.get_mc_predictions(model.forward, inputs = x, mc_samples = mc_samples, ret_numpy=False)
+        logits = [logit.detach().numpy() for logit in logits_list]
+        output = np.mean(logits)
+        variance = np.var(logits)
+        l = loss(torch.tensor(output, dtype=torch.float), target)
         losses.append(l.data)
+        print(f"{x} {output} {variance}")
     print(f"Test set loss: {sum(losses)/len(losses)}")
 
 
@@ -53,7 +60,8 @@ if __name__ == "__main__":
 
     model = FF()
     loss = L1Loss()
-    optimizer = Vadam(model.parameters(), N, num_samples=20)#, lr=0.0005)
-    train(model, loss, optimizer, train_loader, test_loader)
+    optimizer = Vadam(model.parameters(), N, num_samples=20)
+    train(model, loss, optimizer, train_loader)
+    test(model, optimizer, test_loader)
 
 

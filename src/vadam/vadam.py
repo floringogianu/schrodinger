@@ -146,3 +146,51 @@ class Vadam(Optimizer):
 
         return loss
 
+
+    def get_mc_predictions(self, forward_function, inputs, mc_samples=1, ret_numpy=False, *args, **kwargs):
+        """Returns Monte Carlo predictions.
+        Arguments:
+            forward_function (callable): The forward function of the model
+                that takes inputs and returns the outputs.
+            inputs (FloatTensor): The inputs to the model.
+            mc_samples (int): The number of Monte Carlo samples.
+            ret_numpy (bool): If true, the returned list contains numpy arrays,
+                otherwise it contains torch tensors.
+        """
+
+        predictions = []
+
+        for mc_num in range(mc_samples):
+
+            pid = 0
+            original_values = {}
+            for group in self.param_groups:
+                for p in group['params']:
+
+                    original_values.setdefault(pid, torch.zeros_like(p.data)+p.data)
+
+                    state = self.state[p]
+                    # State initialization
+                    if len(state) == 0:
+                        raise RuntimeError('Optimizer not initialized')
+
+                    # A noisy sample
+                    raw_noise = torch.normal(mean=torch.zeros_like(p.data), std=1.0)
+                    p.data.addcdiv_(1., raw_noise, torch.sqrt(self.N * state['exp_avg_sq'] + group['prior_prec']))
+
+                    pid = pid + 1
+
+            # Call the forward computation function
+            outputs = forward_function(inputs, *args, **kwargs)
+            if ret_numpy:
+                outputs = outputs.data.cpu().numpy()
+            predictions.append(outputs)
+
+            pid = 0
+            for group in self.param_groups:
+                for p in group['params']:
+                    p.data = original_values[pid]
+                    pid = pid + 1
+
+        return predictions
+
