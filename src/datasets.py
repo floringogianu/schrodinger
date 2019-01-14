@@ -25,7 +25,7 @@ def sin(x, β=0.2, noisy=True):
     return torch.sin(x)
 
 
-def tricky_line(x):
+def tricky_line(x, noisy=True):
     """ Toy function in: https://arxiv.org/pdf/1806.03335.pdf, Fig. 13
     """
     y = torch.zeros_like(x)
@@ -84,7 +84,7 @@ class DemoData(data.Dataset):
             self.__targets = fn(x_test)
         elif mode == "full":
             self.__data = x_full
-            self.__targets = fn(x_full)
+            self.__targets = fn(x_full, noisy=False)
         else:
             raise ValueError("The mode should be `train` or `test` or `full`.")
 
